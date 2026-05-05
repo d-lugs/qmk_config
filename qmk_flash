@@ -1,0 +1,25 @@
+#!/usr/bin/sh
+
+DIR="/usr/lib/qmk_firmware/keyboards/shortcut/bridge75/"
+
+name=$1
+
+# require config name as arg
+if [ -z $name ]; then
+    echo -n "Enter config name: "
+    read name
+fi
+
+# check if local dir exists
+if [ ! -d "./bridge75/keymaps/$1" ]; then
+    echo "Config '$1' not found"
+fi
+
+# if target dir doesn't exist, create it
+if [ ! -d "$DIR/keymaps/$name" ]; then
+    mkdir $DIR/keymaps/$name
+fi
+
+cp ./bridge75/keymaps/$name/keymap.c $DIR/keymaps/$name
+
+qmk flash -kb shortcut/bridge75 -km $1
