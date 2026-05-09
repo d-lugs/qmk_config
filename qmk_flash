@@ -1,23 +1,48 @@
 #!/usr/bin/sh
 
-DIR="/usr/lib/qmk_firmware/keyboards/shortcut/bridge75/"
+QMK_HOME="/usr/lib/qmk_firmware"
 
-name=$1
+keyboard_name=$1
+if [ -z $keyboard_name ]; then
+    read -p "Enter keyboard name: " keyboard_name
+fi
+keyboard_dir=$(find $QMK_HOME/keyboards -type d -name $keyboard_name)
+config_dir=$(find ./ -type d -name $keyboard_name)
 
-# require config name as arg
-if [ -z $name ]; then
-    echo -n "Enter config name: "
-    read name
+if [ -z $keyboard_dir ]; then
+    echo "error: keyboard not found"
+    exit 1
 fi
 
+if [ -z $config_dir ]; then
+    echo "error: $keyboard_name not found"
+    exit 1
+fi
+
+echo "keyboard selected: $keyboard_dir"
+
+config_name=$2
+if [ -z $config_name ]; then
+    read -p "enter config name: " config_name
+fi
+
+while true; do
+
+    if [ -d $config_dir/keymaps/$config_name ]; then
+        echo "config found: $config_dir/keymaps/$config_name"
+        read -p "overwrite? (y/n) " yn
+    fi
+
+    case $yn in
+        [Yy]*) echo "overwriting $config_dir/keymaps/$config_name"; return 0  ;;
+        [Nn]*) read -p "enter config name: " config_name ;;
+    esac
+done
+
+exit 0
 # check if local dir exists
-if [ ! -d "./bridge75/keymaps/$1" ]; then
+if [ ! -d "$config_dir/$config_name" ]; then
     echo "Config '$1' not found"
-fi
-
-# if target dir doesn't exist, create it
-if [ ! -d "$DIR/keymaps/$name" ]; then
-    mkdir $DIR/keymaps/$name
 fi
 
 cp ./bridge75/keymaps/$name/keymap.c $DIR/keymaps/$name
