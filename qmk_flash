@@ -39,7 +39,6 @@ while true; do
     esac
 done
 
-exit 0
 # check if local dir exists
 if [ ! -d "$config_dir/$config_name" ]; then
     echo "Config '$1' not found"
