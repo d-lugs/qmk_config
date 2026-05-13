@@ -6,44 +6,42 @@ keyboard_name=$1
 if [ -z $keyboard_name ]; then
     read -p "Enter keyboard name: " keyboard_name
 fi
-keyboard_dir=$(find $QMK_HOME/keyboards -type d -name $keyboard_name)
-config_dir=$(find ./ -type d -name $keyboard_name)
 
-if [ -z $keyboard_dir ]; then
-    echo "error: keyboard not found"
+# check for keyboard in qmk environment
+qmk_dir=$(find $QMK_HOME/keyboards -type d -name $keyboard_name)
+if [ -z $qmk_dir ]; then
+    echo "error: keyboard not found in $QMK_HOME"
     exit 1
 fi
 
-if [ -z $config_dir ]; then
+# check for keyboard in local dir
+working_dir=$(find ./ -type d -name $keyboard_name)
+if [ -z $working_dir ]; then
     echo "error: $keyboard_name not found"
     exit 1
 fi
 
-echo "keyboard selected: $keyboard_dir"
+echo "keyboard selected: $qmk_dir"
 
+# set config name
 config_name=$2
 if [ -z $config_name ]; then
     read -p "enter config name: " config_name
 fi
 
+# double check config overwrite
 while true; do
-
-    if [ -d $config_dir/keymaps/$config_name ]; then
-        echo "config found: $config_dir/keymaps/$config_name"
+    if [ -d $working_dir/keymaps/$config_name ]; then
+        echo "config found: $working_dir/keymaps/$config_name"
         read -p "overwrite? (y/n) " yn
     fi
 
     case $yn in
-        [Yy]*) echo "overwriting $config_dir/keymaps/$config_name"; return 0  ;;
+        [Yy]*) echo "overwriting $working_dir/keymaps/$config_name"; return 0  ;;
         [Nn]*) read -p "enter config name: " config_name ;;
     esac
 done
 
-# check if local dir exists
-if [ ! -d "$config_dir/$config_name" ]; then
-    echo "Config '$1' not found"
-fi
-
-cp ./bridge75/keymaps/$name/keymap.c $DIR/keymaps/$name
-
-qmk flash -kb shortcut/bridge75 -km $1
+# send it
+cp ./$working_dir/keymaps/$config_name/keymap.c $qmk_dir/keymaps/$config_name
+qmk flash -kb $keyboard_name -km $config_name
