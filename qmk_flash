@@ -1,47 +1,90 @@
-#!/usr/bin/sh
+#!/usr/bin/bash
 
 QMK_HOME="/usr/lib/qmk_firmware"
 
+# Get absolue path of script
+path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P)
+cd $path
+
+# get keyboard
 keyboard_name=$1
 if [ -z $keyboard_name ]; then
-    read -p "Enter keyboard name: " keyboard_name
+    read -p "enter keyboard name: " keyboard_name
 fi
 
-# check for keyboard in qmk environment
+# verify keyboard exists in qmk dir
 qmk_dir=$(find $QMK_HOME/keyboards -type d -name $keyboard_name)
 if [ -z $qmk_dir ]; then
-    echo "error: keyboard not found in $QMK_HOME"
+    echo -e "keyboard \"$keyboard_name\" not found in $QMK_HOME\nexiting..."
     exit 1
 fi
 
-# check for keyboard in local dir
+# verify keyboard exists in working dir
 working_dir=$(find ./ -type d -name $keyboard_name)
 if [ -z $working_dir ]; then
-    echo "error: $keyboard_name not found"
+    echo -e "keyboard $keyboard_name not found\nexiting..."
     exit 1
 fi
 
-echo "keyboard selected: $qmk_dir"
+echo "keyboard selected: $(echo $qmk_dir | grep -oE '\w+/\w+$')"
 
-# set config name
+# get config
 config_name=$2
 if [ -z $config_name ]; then
-    read -p "enter config name: " config_name
+    config_list=()
+    declare -i num=1
+    # select from list of existing configs
+    echo "available configs:"
+    for conf in $(find $working_dir -type d -path "*/keymaps/*" -printf "%f\n"); do
+        config_list+=("$conf")
+        echo -e "  $num. $conf"; num+=1
+    done
+    read -p "select config: " config_num
+
+    config_name=${config_list[$config_num-1]}
+fi
+
+# verify config name
+if [ -d $working_dir/keymaps/$config_name ]; then
+    echo "config selected: $working_dir/keymaps/$config_name"
+else
+    echo -e "config \"$config_name\" not found\nexiting..."
+    exit 1
 fi
 
 # double check config overwrite
 while true; do
-    if [ -d $working_dir/keymaps/$config_name ]; then
-        echo "config found: $working_dir/keymaps/$config_name"
+    if [ -d $qmk_dir/keymaps/$config_name ]; then
+        echo "existing config found: $qmk_dir/keymaps/$config_name"
         read -p "overwrite? (y/n) " yn
-    fi
 
+        case $yn in
+            [Yy]*) echo "overwriting $qmk_dir/keymaps/$config_name"; break ;;
+            [Nn]*) read -p "enter new config name: " new_config_name ;;
+        esac
+
+        if [ ! -z new_config_name -a ! -d $qmk_dir/keymaps/$new_config_name ]; then
+            cp -rv ./$working_dir/keymaps/$config_name ./$working_dir/keymaps/$new_config_name
+            config_name=$new_config_name
+        fi
+    else
+        break
+    fi
+done
+
+# final confirmation
+echo
+echo "keyboard: $(echo $qmk_dir | grep -oE '\w+/\w+$')"
+echo "config:   $config_name"
+while true; do
+    read -p "continue? (y/n) " yn
     case $yn in
-        [Yy]*) echo "overwriting $working_dir/keymaps/$config_name"; return 0  ;;
-        [Nn]*) read -p "enter config name: " config_name ;;
+        [Yy]*) echo "writing "$config_name" to $qmk_dir/keymaps/" ; break ;;
+        [Nn]*) echo "exiting..." ; exit 0 ;;
     esac
 done
 
 # send it
-cp ./$working_dir/keymaps/$config_name/keymap.c $qmk_dir/keymaps/$config_name
+cp -rv ./$working_dir/keymaps/$config_name $qmk_dir/keymaps/
+exit 0
 qmk flash -kb $keyboard_name -km $config_name
