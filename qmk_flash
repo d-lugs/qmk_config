@@ -86,5 +86,4 @@ done
 
 # send it
 cp -rv ./$working_dir/keymaps/$config_name $qmk_dir/keymaps/
-exit 0
-qmk flash -kb $keyboard_name -km $config_name
+qmk flash -kb $(echo $qmk_dir | grep -oE '\w+/\w+$') -km $config_name
