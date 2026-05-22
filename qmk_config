@@ -6,6 +6,18 @@ QMK_HOME="/usr/lib/qmk_firmware"
 path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P)
 cd $path
 
+usage_note="USAGE: sudo ./qmk_flash (flash|compile) [keyboard name] [config name]"
+
+# parse arguments
+case $1 in
+    flash)
+        action="flash" ; shift ;;
+    compile)
+        action="compile" ; shift ;;
+    *)
+        echo -e "Unknown action: $1\n$usage_note" ; exit 1 ;;
+esac
+
 # get keyboard
 keyboard_name=$1
 if [ -z $keyboard_name ]; then
@@ -86,4 +98,4 @@ done
 
 # send it
 cp -rv ./$working_dir/keymaps/$config_name $qmk_dir/keymaps/
-qmk flash -kb $(echo $qmk_dir | grep -oE '\w+/\w+$') -km $config_name
+qmk $action -kb $(echo $qmk_dir | grep -oE '\w+/\w+$') -km $config_name
