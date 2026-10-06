@@ -4,7 +4,8 @@
 enum layers {
     B,
     FN,
-    FN2
+    FN2,
+    FN3
 };
 
 // clang-format off
@@ -28,13 +29,31 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 
     [FN2] = LAYOUT_ansi(
-        EE_CLR,  KC_BRID, KC_BRIU, KC_MCTL, KC_LPAD, KC_F5,   KC_F6,   KC_MPRV, KC_MPLY, KC_MNXT, KC_MUTE, KC_VOLD, KC_VOLU,                   _______,
-        KC_USB,  KC_BT1,  KC_BT2,  KC_BT3,  KC_2G4,  _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,
+        EE_CLR,  _______, TG(FN3), _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,                   _______,
+        KC_USB,  KC_BT1,  KC_BT2,  KC_BT3,  KC_2G4,  _______, _______, _______, _______, _______, KC_PSCR, KC_SCRL, _______, _______,          _______,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,          _______,
-        _______, RGB_TOG, RGB_MOD, RGB_RMOD,RGB_HUI, RGB_HUD, RGB_SAI, RGB_SAD, RGB_VAI, RGB_VAD, _______,                   _______, _______, _______,
+        _______, _______, _______, _______, _______, QK_BOOT, NK_TOGG, DB_TOGG, _______, _______, _______,                   _______, _______, _______,
+        _______, _______, _______,                            _______,                            _______, _______,          _______, _______, _______
+    ),
+    [FN3] = LAYOUT_ansi(
+        TO(B),   _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,                   _______,
+        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,
+        _______, RGB_SPD, RGB_VAI, RGB_SPI, RGB_HUI, RGB_SAI, _______, _______, _______, _______, _______, _______, _______, _______,          _______,
+        _______, RGB_RMOD,RGB_VAD, RGB_MOD, RGB_HUD, RGB_SAD, _______, _______, _______, _______, _______, _______,          _______,          _______,
+        _______, RGB_TOG, _______, _______, _______, _______, _______, _______, _______, _______, _______,                   _______, _______, _______,
+        _______, _______, _______,                            _______,                            _______, TO(B),            _______, _______, _______
+    )
+    /*
+    [X] = LAYOUT_ansi(
+        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,                   _______,
+        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,
+        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,
+        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,          _______,
+        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,                   _______, _______, _______,
         _______, _______, _______,                            _______,                            _______, _______,          _______, _______, _______
     )
+    */
 };
 // clang-format on
 
@@ -53,11 +72,12 @@ bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
 
                 uint16_t keycode = keymap_key_to_keycode(0, (keypos_t){col, row});
                 if (keycode == KC_CAPS && index != NO_LED) {
-                    rgb_matrix_set_color(index, 0, 255, 255);
+                    rgb_matrix_set_color(index, 255, 255, 255);
                 }
             }
         }
     }
+
     // Layer Indicator
     uint8_t current_layer = get_highest_layer(layer_state);
     if (current_layer > 0) {
@@ -69,11 +89,12 @@ bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
 
                 uint16_t keycode = keymap_key_to_keycode(0, (keypos_t){col, row});
                 if (keycode == target_keycode && index != NO_LED) {
-                    rgb_matrix_set_color(index, 0, 0, 255);
+                    rgb_matrix_set_color(index, 255, 255, 255);
                 }
             }
         }
     }
+
     // Wired/Pairing Mode Indicator
     if (get_highest_layer(layer_state) == 2) {
         uint16_t target_keycode = KC_USB;
@@ -101,25 +122,11 @@ bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
 
                 uint16_t keycode = keymap_key_to_keycode(2, (keypos_t){col, row});
                 if (keycode == target_keycode && index != NO_LED) {
-                    rgb_matrix_set_color(index, 0, 0, 255);
+                    rgb_matrix_set_color(index, 255, 255, 255);
                 }
             }
         }
     }
-    // When Layer 2 is active, highlight active keys
-    if (get_highest_layer(layer_state) == 2) {
-        for (uint8_t row = 0; row < MATRIX_ROWS; ++row) {
-            for (uint8_t col = 0; col < MATRIX_COLS; ++col) {
-                uint8_t index = g_led_config.matrix_co[row][col];
-                if (index >= led_min && index < led_max && index != NO_LED) {
-                    uint16_t keycode = keymap_key_to_keycode(2, (keypos_t){col, row});
-                    if (keycode > KC_TRNS) {
-                        // Active Layer 2 keys: White
-                        rgb_matrix_set_color(index, 128, 128, 128);
-                    }
-                }
-            }
-        }
-    }
+
     return false;
 }
