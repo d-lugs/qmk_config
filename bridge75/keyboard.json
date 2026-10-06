@@ -1,7 +1,7 @@
 {
     "manufacturer": " ",
     "keyboard_name": "Bridge75",
-    "maintainer": "JonyLee@HFD",
+    "maintainer": "Daniel L",
     "url": "",
     "processor": "WB32FQ95",
     "bootloader": "wb32-dfu",
@@ -9,9 +9,9 @@
         "matrix": [0, 0]
     },
     "usb": {
-        "device_version": "1.0.0",
-        "vid": "0x0C45",
-        "pid": "0xFEFE",
+        "device_version": "4.14.0",
+        "vid": "0x1932",
+        "pid": "0x1337",
         "force_nkro": true,
         "suspend_wakeup_delay": 1000
     },

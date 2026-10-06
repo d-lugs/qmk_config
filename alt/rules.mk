@@ -1,6 +1,9 @@
-UF2_DEVICE_TYPE_ID = 0x35446147
-UF2CONV_ARGS = --device-type $(UF2_DEVICE_TYPE_ID)
+# project specific files
+SRC += config_led.c
 
-SRC += lib/common.c lib/mux.c
+#For platform and packs
+ARM_ATSAM = SAMD51J18A
+MCU = cortex-m4
 
-ANALOG_DRIVER_REQUIRED = yes
+# Bootloader selection
+BOOTLOADER = md-boot
